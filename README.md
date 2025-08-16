@@ -10,13 +10,13 @@ A Python ATProto client to delete your old posts.
 This tool is configured using environment variables.
 
 ### Required
-*   `ATPROTO_USERNAME`: Your ATProto username.
-*   `ATPROTO_PASSWORD`: Your ATProto app password.
+*   `BSKY_USERNAME`: Your Bluesky username.
+*   `BSKY_PASSWORD`: Your Bluesky app password.
 
 ### Optional
-*   `DAYS_TO_KEEP`: How old posts should be before deleting (in days). Defaults to `14`.
-*   `DELETE_REPOSTS`: Set to `True` to delete reposts, `False` otherwise. Defaults to `True`.
-*   `DELETE_LIKES`: Set to `True` to delete likes, `False` otherwise. Defaults to `False`.
+*   `BSKY_DAYS_TO_KEEP`: How old posts should be before deleting (in days). Defaults to `14`.
+*   `BSKY_DELETE_REPOSTS`: Set to `True` to delete reposts, `False` otherwise. Defaults to `True`.
+*   `BSKY_DELETE_LIKES`: Set to `True` to delete likes, `False` otherwise. Defaults to `True`.
 
 ## Installation
 
@@ -29,8 +29,8 @@ pip install -r requirements.txt
 Before running, make sure you have set the required environment variables.
 
 ```bash
-export ATPROTO_USERNAME="your-username"
-export ATPROTO_PASSWORD="your-app-password"
+export BSKY_USERNAME="your-username"
+export BSKY_PASSWORD="your-app-password"
 
-python -m deletesky.src.main
+python deletesky/src/main.py
 ```
