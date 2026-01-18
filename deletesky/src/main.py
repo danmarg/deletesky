@@ -16,9 +16,52 @@ DELETE_LIKES = os.getenv("BSKY_DELETE_LIKES", "True").lower() == "true"
 MAX_RETRIES = 3
 RETRY_DELAY = 5  # seconds
 
+def delete_records(client, did, collection, delete_before_date, delete_fn, type_name):
+    """Helper to delete records from a collection with pagination."""
+    cursor = None
+    deleted_count = 0
+    while True:
+        try:
+            response = client.com.atproto.repo.list_records(
+                {
+                    "repo": did,
+                    "collection": collection,
+                    "cursor": cursor,
+                    "limit": 100
+                }
+            )
+            for record in response.records:
+                try:
+                    created_at_str = getattr(record.value, 'created_at', None)
+                    if not created_at_str:
+                        continue
+
+                    # Parse ISO 8601 string to datetime object
+                    created_at = datetime.datetime.fromisoformat(created_at_str.replace('Z', '+00:00'))
+
+                    if created_at < delete_before_date:
+                        if hasattr(record.value, 'text'):
+                            print(f"Deleting {type_name}: {record.value.text[:50]}...")
+                        else:
+                            print(f"Deleting {type_name}: {record.uri}")
+
+                        delete_fn(record.uri)
+                        deleted_count += 1
+                except Exception as e:
+                    print(f"Failed to delete {type_name} {record.uri}: {e}")
+
+            if not response.cursor:
+                break
+            cursor = response.cursor
+        except Exception as e:
+            print(f"Error listing records for {collection}: {e}")
+            break
+    return deleted_count
+
+
 def main():
     if not USERNAME or not PASSWORD:
-        print("Error: ATPROTO_USERNAME and ATPROTO_PASSWORD environment variables must be set.")
+        print("Error: BSKY_USERNAME and BSKY_PASSWORD environment variables must be set.")
         sys.exit(1)
 
     custom_request = Request(timeout=Timeout(timeout=30.0))
@@ -34,36 +77,21 @@ def main():
 
     for retry in range(MAX_RETRIES):
         try:
-            profile = client.get_profile(client.me.handle)
+            did = client.me.did
 
             # Delete posts
-            response = client.app.bsky.feed.get_author_feed({'actor': profile.did})
-            for post in response.feed:
-                post_record = post.post.record
-                post_uri = post.post.uri
-                if post_record.created_at < delete_before_date.isoformat():
-                    print(f"Deleting post: {post_record.text}")
-                    client.delete_post(post_uri)
+            print("Checking posts...")
+            delete_records(client, did, "app.bsky.feed.post", delete_before_date, client.delete_post, "post")
 
             # Delete reposts
             if DELETE_REPOSTS:
-                reposts = client.com.atproto.repo.list_records(
-                    {"repo": profile.did, "collection": "app.bsky.feed.repost"}
-                )
-                for repost in reposts.records:
-                    if repost.value.created_at < delete_before_date.isoformat():
-                        print(f"Deleting repost: {repost.uri}")
-                        client.delete_repost(repost.uri)
+                print("Checking reposts...")
+                delete_records(client, did, "app.bsky.feed.repost", delete_before_date, client.delete_repost, "repost")
 
             # Delete likes
             if DELETE_LIKES:
-                likes = client.com.atproto.repo.list_records(
-                    {"repo": profile.did, "collection": "app.bsky.feed.like"}
-                )
-                for like in likes.records:
-                    if like.value.created_at < delete_before_date.isoformat():
-                        print(f"Deleting like: {like.uri}")
-                        client.delete_like(like.uri)
+                print("Checking likes...")
+                delete_records(client, did, "app.bsky.feed.like", delete_before_date, client.delete_like, "like")
 
             break  # Success, exit retry loop
 
