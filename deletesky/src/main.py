@@ -23,10 +23,12 @@ def delete_records(client, did, collection, delete_before_date, delete_fn, type_
     while True:
         try:
             response = client.com.atproto.repo.list_records(
-                repo=did,
-                collection=collection,
-                cursor=cursor,
-                limit=100
+                {
+                    "repo": did,
+                    "collection": collection,
+                    "cursor": cursor,
+                    "limit": 100
+                }
             )
             for record in response.records:
                 try:
