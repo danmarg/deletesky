@@ -1,12 +1,51 @@
-[tool.poetry]
-name = "your-package-name"
-version = "0.1.0"
-description = "A short description of your package"
-authors = ["Your Name <you@example.com>"]
-
-[tool.poetry.dependencies]
-python = "^3.8"
-
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "deletesky"
+version = "0.1.0"
+description = "Autodelete old Bluesky posts."
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Dan Margolis"}
+]
+keywords = ["bluesky", "atproto", "bsky", "auto-delete", "cleanup"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "Topic :: Internet",
+]
+
+dependencies = [
+    "atproto>=0.0.40",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "black>=23.0",
+    "flake8>=6.0",
+    "mypy>=1.0",
+]
+
+[project.scripts]
+deletesky = "deletesky.src.main:main"
+
+[project.urls]
+Homepage = "https://github.com/danmarg/deletesky"
+Repository = "https://github.com/danmarg/deletesky"
+Issues = "https://github.com/danmarg/deletesky/issues"
+
+[tool.setuptools]
+packages = ["deletesky", "deletesky.src"]
